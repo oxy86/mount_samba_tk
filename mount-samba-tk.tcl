@@ -26,8 +26,10 @@ frame .rc -borderwidth 2
 #Προβολή του κάδρου
 pack .rc
 
+# Ορισμοί καθολικών μεταβλητών -  οι δύο πρώτες είναι λίστες.
 global aList vList val
 
+# Περιεχόμενα της aList: οι ετικέτες των πεδίων μας.
 set aList "
 {REMOTE IP} 
 {RFOLDER  }
@@ -35,20 +37,22 @@ set aList "
 {USERNAME }
 {PASSWORD }"
 
-# Ορισμοί μεταβλητών - η vList είναι μια λίστα, αρχικά κενή.
+# η vList είναι μια λίστα, αρχικά κενή. Εδώ θα βάζουμε τις τιμές των πεδίων.
 set vList {}
 
 # Στην Tcl δεν ορίζουμε τύπους στις μεταβλητές.
 set maxl 0
 set i 0
 
-
+# Στο .rc.fff θα δημιουργήσουμε 5 πεδία εισαγωγής.
 frame .rc.fff -height 40 
 pack .rc.fff
 
+# Στο rc.ent θα έχουμε μια γραμμή κειμένου ως "εξοδο".
 entry .rc.ent -width 50
 pack .rc.ent
 
+# Δημιουργία πεδίων εισαγωγής με ετικέτες. 
 foreach a $aList {
 	#Δημιουργία πεδίου μιας γραμμής με όνομα .rc.fff.sub1 κοκ.
 	set ff [frame .rc.fff.sub$i]
@@ -69,54 +73,60 @@ foreach a $aList {
 	pack $ff.lab $ff.ent -side left -in $ff
 	#Αύξηση του i κατά μια μονάδα
 	incr i
-	}
+}
 
 
+# Η ρουτίνα argEnter καλείται όταν ο χρήστης πατάει Enter/Return ή Tab στο πεδίο εισαγωγής 
 proc argEnter { w a } {
-	global aList vList 
+	# Καθολικές μεταβλητές που θα χρειαστούμε
+	global aList vList IP RFOLDER LFOLDER USERNAME PASSWORD fullCommand
 	# Βρες τον δείκτη του a μέσα στην aList
 	set idx [lsearch $aList $a]
-	# Θέσε ότι περιέχει το πεδίο εισαγωγής της αντίστοιχης γραμμής στην μεταβλητή va
+	# Θέσε ότι περιέχει το πεδίο εισαγωγής της αντίστοιχης γραμμής στην μεταβλητή val
 	set val [.rc.fff.sub$idx.ent get]
 	if { $val == "" } {
-			tk_messageBox -message "Warning. You did not enter something."
+			tk_messageBox -message "Δεν εισήχθη τίποτα."
 		} else {
 			set idx2 [lsearch $vList $val]
 			#tk_messageBox -message "You entered: $val  - idx2: $idx2  - vList: $vList . "
 			if {  $idx2 >= 0  } { 	# ή != -1
-				tk_messageBox -message "Value already in the list. Skipping."
+				tk_messageBox -message "Υπάρχει στη λίστα.."
 			} else {
-				lappend vList $val
-                              # tk_messageBox -message "Appending to list..."
+				 # βάλε το περιεχόμενο της val στην vList.
+				lappend vList $val 
+                              # tk_messageBox -message "Προσθήκη στη λίστα..."
 			}
 			
 		}
-	}
-button .rc.b -text "Προσάρτηση" -command  { .rc.ent insert 0 [set my [exec uname -r] ] }
-				
-pack .rc.b
+	# Αρχικοποίηση όλων των μεταβλητών με τα δεδομένα που εισήχθησαν.
+	set IP [lindex $vList 0 ]
+	set RFOLDER [lindex $vList 1 ] 
+	set LFOLDER  [lindex $vList 2 ]
+	set USERNAME [lindex $vList 3 ]
+	set PASSWORD [lindex $vList 4 ]
+	set fullCommand  ""
+	# Δημιουργία εντολής για το mounting
+	# Προσοχη: απαιτείται η εγκατάσταση του smbmount (δες πακέτο smbfs στο Ubuntu/Debian)
+	append  fullCommand "smbmount //" $IP "/" $RFOLDER "  " $LFOLDER " -o username=" $USERNAME ",password=" $PASSWORD
 
-button .rc.com -text "Εντολη" -command {
-			
-			set IP [lindex $vList 0 ]
-			set RFOLDER [lindex $vList 1 ] 
-			set LFOLDER  [lindex $vList 2 ]
-			set USERNAME [lindex $vList 3 ]
-			set PASSWORD [lindex $vList 4 ]
-			set fullCommand ""
-			append  fullCommand "smbmount //" $IP "/" $RFOLDER "  " $LFOLDER " -o username=" $USERNAME ",password=" $PASSWORD
-			#tk_messageBox -message $IP
-			#tk_messageBox -message $RFOLDER
-			
-			.rc.ent insert 0 $fullCommand
-			#.rc.ent insert [string length $com] $IP 
-			 #.rc.ent insert [set pre1 [expr [string length $IP]+1 + 6 ] ] $RFOLDER
-			#.rc.ent insert [set pre2 [expr [string length $pre1] + 1 ] ] $LFOLDER
-			#.rc.ent insert [set pre3 [expr [string length $pre2] + 1 ] ] $USERNAME
-			#.rc.ent insert [set pre4 [expr [string length $pre3] + 1 ] ] $PASSWORD
+}
+
+
+
+# Κουμπί για την επιβεβαιωτική προβολή της εντολής προσάρτησης.
+button .rc.com -text "Προβολή Εντολής" -command {			
+			.rc.ent insert 0 $fullCommand 
 		 }
 pack .rc.com
 
+# Κουμπί εκτέλεσης της προσάρτησης
+button .rc.b -text "Εκτέλεση Εντολής" -command  { 
+			.rc.ent insert 0 $fullCommand [exec $fullCommand]	
+		}
+				
+pack .rc.b
+
+# Κουμπί εξόδου από το πρόγραμμα
 button .rc.c -text "Eξοδος" -command {exit}
 pack .rc.c
 
