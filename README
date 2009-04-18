@@ -1,6 +1,5 @@
 Samba_Tk
 
-
 Samba_Tk is a little Tcl/Tk script I wrote sometime ago when I was messing with the Tcl/tk cookbook. 
 
 It presents a simple dialog (in Greek) where the user enters the remote server’s IP and shared folder, the local folder (where the share folder should be mounted), as well as samba server credentials, i.e. username and password. 
