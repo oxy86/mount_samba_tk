@@ -1,0 +1,12 @@
+Samba_Tk
+
+
+Samba_Tk is a little Tcl/Tk script I wrote sometime ago when I was messing with the Tcl/tk cookbook. 
+
+It presents a simple dialog (in Greek) where the user enters the remote server’s IP and shared folder, the local folder (where the share folder should be mounted), as well as samba server credentials, i.e. username and password. 
+
+It has pretty basic (read “zero”…) exception handling and pretty naive logic: you have to make sure that the remote and local folder exist, and that you have smbmount installed. 
+
+Warning: I haven’t really test it recently. 
+
+Nevertheless, it is somewhat documented and could be useful to some with a little effort. Just save it (i.e. samba_mount_tk.tcl), make executable (chmod +x samba_mount_tk.tcl), then run it (./samba_mount_tk.tcl)…
